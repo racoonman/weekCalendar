@@ -31,10 +31,7 @@
             var res = this.$itemGroups;
             for (var x in this.$itemGroups) {
                 this.$itemGroups[x].cleanItems = [];
-                var startHour = undefined, endHour = undefined, 
-                        startMinute = undefined, endMinute = undefined, 
-                        startWeekDay = undefined, endWeekDay = undefined;
-                
+
                 for (var y in this.$itemGroups[x].elements) {
                     var e = this.$itemGroups[x].elements[y];
                     this.$itemGroups[x].cleanItems.push({
@@ -43,47 +40,7 @@
                         startMinute: e.data("weekCalendar-slot") * (60 / this.options.divisions),
                         duration: (60 / this.options.divisions)
                     });
-                    
-                    if (startHour === undefined || startHour >= e.data("weekCalendar-hour")) {
-                        startHour = e.data("weekCalendar-hour")
-                        var m = slot2minutes(this, e.data("weekCalendar-slot"))
-                        if (startMinute === undefined 
-                                || startMinute > m.from) {
-                            startMinute = m.from
-                            if (startMinute === 60) {
-                                startHour = startHour + 1
-                                startMinute = 0
-                            }
-                        }
-                    }
-                    
-                    if (endHour === undefined || endHour <= e.data("weekCalendar-hour")) {
-                        endHour = e.data("weekCalendar-hour")
-                        var m = slot2minutes(this, e.data("weekCalendar-slot"))
-                        if (endMinute === undefined 
-                                || endMinute < m.to) {
-                            endMinute = m.to
-                            if (endMinute === 60) {
-                                endHour = endHour + 1
-                                endMinute = 0
-                            }
-                        }
-                    }
-                    
-                    if(startWeekDay === undefined || startWeekDay > e.data("weekCalendar-weekDay")) {
-                        startWeekDay = e.data("weekCalendar-weekDay")
-                    }
-                    if(endWeekDay === undefined || startWeekDay  < e.data("weekCalendar-weekDay")) {
-                        endWeekDay = e.data("weekCalendar-weekDay")
-                    }
                 }
-                
-                this.$itemGroups[x].startHour = startHour
-                this.$itemGroups[x].endHour = endHour
-                this.$itemGroups[x].startMinute = startMinute
-                this.$itemGroups[x].endMinute= endMinute
-                this.$itemGroups[x].startWeekDay = startWeekDay
-                this.$itemGroups[x].endWeekDay= endWeekDay
             }
 
             return res;
@@ -108,7 +65,7 @@
             }
             this.options.deleteCallback.call();
         },
-        'clear': function(){
+        'clear': function() {
             while (this.$itemGroups.length > 0) {
                 this.deleteItemGroup(this.$itemGroups[0].id);
             }
@@ -145,11 +102,48 @@
                 });
                 itemGroup.elements[0].before(deleteBtn);
 
+                var startHour = undefined, endHour = undefined,
+                        startMinute = undefined, endMinute = undefined,
+                        startWeekDay = undefined, endWeekDay = undefined;
+
                 $.each(itemGroup.elements, function(index, e) {
                     $(e).data("weekCalendar-itemGroupId", itemGroup.id);
                     $(e).addClass("weekCalendar-itemGroup");
                     $(e).removeClass("ui-selected");
                     $(e).tooltip("disable");
+
+                    if (startHour === undefined || startHour >= e.data("weekCalendar-hour")) {
+                        startHour = e.data("weekCalendar-hour")
+                        var m = slot2minutes(that, e.data("weekCalendar-slot"))
+                        if (startMinute === undefined
+                                || startMinute > m.from) {
+                            startMinute = m.from
+                            if (startMinute === 60) {
+                                startHour = startHour + 1
+                                startMinute = 0
+                            }
+                        }
+                    }
+
+                    if (endHour === undefined || endHour <= e.data("weekCalendar-hour")) {
+                        endHour = e.data("weekCalendar-hour")
+                        var m = slot2minutes(that, e.data("weekCalendar-slot"))
+                        if (endMinute === undefined
+                                || endMinute < m.to) {
+                            endMinute = m.to
+                            if (endMinute === 60) {
+                                endHour = endHour + 1
+                                endMinute = 0
+                            }
+                        }
+                    }
+
+                    if (startWeekDay === undefined || startWeekDay > e.data("weekCalendar-weekDay")) {
+                        startWeekDay = e.data("weekCalendar-weekDay")
+                    }
+                    if (endWeekDay === undefined || startWeekDay < e.data("weekCalendar-weekDay")) {
+                        endWeekDay = e.data("weekCalendar-weekDay")
+                    }
                 });
 
                 itemGroup.displayName = calculateItemGroupDisplayName(that, itemGroup);
@@ -157,6 +151,13 @@
                         info.html(that.options.i18n.editLabel + " " + itemGroup.displayName));
 
                 that.$itemGroups.push(itemGroup);
+
+                itemGroup.startHour = startHour
+                itemGroup.endHour = endHour
+                itemGroup.startMinute = startMinute
+                itemGroup.endMinute = endMinute
+                itemGroup.startWeekDay = startWeekDay
+                itemGroup.endWeekDay = endWeekDay
 
                 that.options.stopCallback.call(that, itemGroup);
             }
