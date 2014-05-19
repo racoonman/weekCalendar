@@ -158,7 +158,7 @@
 
                 that.$itemGroups.push(itemGroup);
 
-                that.options.stopCallback.call();
+                that.options.stopCallback.call(itemGroup);
             }
         },
         'addCustomTime': function(customTime) {
