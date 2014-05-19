@@ -11,7 +11,7 @@
         <span>select-result:</span> <span id="select-result"></span>
         <div class="row">
             <div class='col-md-8 col-md-offset-2'>
-                <div id="weekCalendar"></div>
+                <div id="target"></div>
             </div>
         </div>
         
@@ -21,14 +21,14 @@
         <script src="js/weekCalendar.js"></script>
         <script>
             function cb() {
-                var items = $("#weekCalendar").weekCalendar('serialize')[0];
+                var items = $("#target").weekCalendar('serialize')[0];
                 var value = "";
                 for (var x in items) {
                     value = value + items[x].id + " ";
                 }
                 $("#select-result").html(value);
             }
-            $("#weekCalendar").weekCalendar({
+            $("#target").weekCalendar({
                 stopCallback: cb,
                 deleteCallback: cb,
                 divisions: 4,
@@ -60,7 +60,7 @@
                 toMinute: 35
             };
             
-            $("#weekCalendar").weekCalendar('addCustomTime', customTime);
+            $("#target").weekCalendar('addCustomTime', customTime);
             var customTime2 = {
                 fromWeekDay: 0,
                 toWeekDay: 2,
@@ -69,7 +69,7 @@
                 toHour: 15,
                 toMinute: 30
             };
-            $("#weekCalendar").weekCalendar('addCustomTime', customTime2);
+            $("#target").weekCalendar('addCustomTime', customTime2);
         </script>
     </body>
 </html>
