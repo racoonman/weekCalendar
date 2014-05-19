@@ -78,13 +78,13 @@
 
             if (!overlap) {
                 var info = $("<a>", {
-                    class: 'label label-info',
+                    'class': 'label label-info',
                     href: 'javascript:void(0)',
                     id: 'weekCalendar-info' + itemGroup.id,
                     style: "position: absolute; margin-top: 14px"
                 });
                 var deleteBtn = $("<a>", {
-                    class: 'label label-default deleteBtn',
+                    'class': 'label label-default deleteBtn',
                     href: '#',
                     id: 'weekCalendar-deleteBtn' + itemGroup.id,
                     style: "position: absolute;"
@@ -258,7 +258,7 @@
 
     function table(that) {
         return $("<table>", {
-            class: 'table table-bordered table-striped table-responsive weekCalendarTable'
+            'class': 'table table-bordered table-striped table-responsive weekCalendarTable'
         }).append(thead(that)).append(tbody(that));
     }
 
@@ -279,9 +279,9 @@
 
         var tr = $("<tr>");
         var thead = $("<thead>").append(tr);
-        tr.append($("<th>", {class: 'weekCalendar-hourColumn', style: 'width: 20px'}));
+        tr.append($("<th>", {'class': 'weekCalendar-hourColumn', style: 'width: 20px'}));
         for (var x in arr) {
-            tr.append($("<th>", {class: 'weekCalendar-weekColumn'}).html(arr[x]));
+            tr.append($("<th>", {'class': 'weekCalendar-weekColumn'}).html(arr[x]));
         }
 
         return thead;
@@ -294,7 +294,7 @@
             var tr = $("<tr>");
             body.append(tr);
 
-            tr.append($("<td>", {class: 'weekCalendar-hourColumn'}).html(formatHour(x, 0)));
+            tr.append($("<td>", {'class': 'weekCalendar-hourColumn'}).html(formatHour(x, 0)));
 
             for (var y = 0 + that.options.startWeekDay; y < (7 + that.options.startWeekDay); y++) {
                 var hour = $("<td>");
@@ -302,7 +302,7 @@
 
                 for (var z = 0; z < that.options.divisions; z++) {
                     var hourSlot = $("<div>", {
-                        class: 'weekCalendar-slot weekCalendar-' + y.toString() + x.toString() + z.toString(),
+                        'class': 'weekCalendar-slot weekCalendar-' + y.toString() + x.toString() + z.toString(),
                         style: 'height: ' + (that.options.style.height / that.options.divisions) + 'px;',
                         title: formatHour(x, ((60 / that.options.divisions) * z)),
                         'data-weekCalendar-hour': x,
