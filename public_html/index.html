@@ -1,9 +1,4 @@
 <!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
 <html>
     <head>
         <meta charset="UTF-8">
@@ -21,8 +16,8 @@ and open the template in the editor.
         </div>
         
         <script src="js/jquery-2.1.1.min.js"></script>
-        <script src="js/jquery-ui-1.10.4.min.js"></script>
         <script src="js/bootstrap.min.js"></script>
+        <script src="js/jquery-ui-1.10.4.min.js"></script>
         <script src="js/weekCalendar.js"></script>
         <script>
             function cb() {
@@ -66,6 +61,15 @@ and open the template in the editor.
             };
             
             $("#weekCalendar").weekCalendar('addCustomTime', customTime);
+            var customTime2 = {
+                fromWeekDay: 0,
+                toWeekDay: 2,
+                fromHour: 10,
+                fromMinute: 0,
+                toHour: 15,
+                toMinute: 30
+            };
+            $("#weekCalendar").weekCalendar('addCustomTime', customTime2);
         </script>
     </body>
 </html>
