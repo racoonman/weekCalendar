@@ -64,6 +64,11 @@
             }
             this.options.deleteCallback.call();
         },
+        'clear': function(){
+            while (this.$itemGroups.length > 0) {
+                this.deleteItemGroup(this.$itemGroups[0].id);
+            }
+        },
         'addItemGroup': function(itemGroup) {
             var that = this;
             var overlap = false;
