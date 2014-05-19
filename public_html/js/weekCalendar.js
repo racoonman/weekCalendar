@@ -158,7 +158,7 @@
 
                 that.$itemGroups.push(itemGroup);
 
-                that.options.stopCallback.call(itemGroup);
+                that.options.stopCallback.call(that, itemGroup);
             }
         },
         'addCustomTime': function(customTime) {
