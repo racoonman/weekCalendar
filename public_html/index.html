@@ -20,7 +20,8 @@
         <script src="js/jquery-ui-1.10.4.min.js"></script>
         <script src="js/weekCalendar.js"></script>
         <script>
-            function cb() {
+            function cb(item) {
+                console.log(item)
                 var items = $("#target").weekCalendar('serialize')[0];
                 var value = "";
                 for (var x in items) {
