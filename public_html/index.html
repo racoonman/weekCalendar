@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>weekCalendar</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="css/ui-lightness/jquery-ui-1.10.4.min.css">
+        <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    </head>
+    <body>
+        <span>select-result:</span> <span id="select-result"></span>
+        <div class="row">
+            <div class='col-md-8 col-md-offset-2'>
+                <div id="weekCalendar"></div>
+            </div>
+        </div>
+        
+        <script src="js/jquery-2.1.1.min.js"></script>
+        <script src="js/jquery-ui-1.10.4.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <script src="js/weekCalendar.js"></script>
+        <script>
+            function cb() {
+                var items = $("#weekCalendar").weekCalendar('serialize')[0];
+                var value = "";
+                for (var x in items) {
+                    value = value + items[x].id + " ";
+                }
+                $("#select-result").html(value);
+            }
+            $("#weekCalendar").weekCalendar({
+                stopCallback: cb,
+                deleteCallback: cb,
+                divisions: 4,
+                startWeekDay: 1,
+                i18n: {
+                    weekDay0: "Domingo",
+                    weekDay1: "Lunes",
+                    weekDay2: "Martes",
+                    weekDay3: "Miercoles",
+                    weekDay4: "Jueves",
+                    weekDay5: "Viernes",
+                    weekDay6: "Sabado",
+                    deleteLabel: "<i class='glyphicon glyphicon-trash'></i> Borrar",
+                },
+                style: {
+//                    padding: true,
+//                    selectingColor: "green",
+//                    selectedColor: "blue",
+                    height: 40
+                }
+            });
+            
+            var customTime = {
+                fromWeekDay: 3,
+                toWeekDay: 3,
+                fromHour: 6,
+                fromMinute: 10,
+                toHour: 7,
+                toMinute: 35
+            };
+            
+            $("#weekCalendar").weekCalendar('addCustomTime', customTime);
+        </script>
+    </body>
+</html>
