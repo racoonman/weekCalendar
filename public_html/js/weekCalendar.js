@@ -11,8 +11,7 @@
             var that = this, element = this.$element;
             element.append(table(that));
 
-            $( document ).tooltip();
-//            $(".weekCalendar-slot").tooltip();
+            $(".weekCalendar-slot").tooltip();
 
             element.selectable({
                 start: function() {
@@ -271,8 +270,8 @@
             that.options.i18n.weekDay3,
             that.options.i18n.weekDay4,
             that.options.i18n.weekDay5,
-            that.options.i18n.weekDay6,
-        ]
+            that.options.i18n.weekDay6
+        ];
         for (var i = 0; i < that.options.startWeekDay; i++) {
             arr.push(arr[0]);
             arr.splice(0, 1);
