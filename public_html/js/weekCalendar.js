@@ -7,9 +7,19 @@
 
     WeekCalendar.prototype = {
         constructor: WeekCalendar,
+        destroy: function(){
+            log(this, "DESTROY");
+            this.clear(true);
+            this.options = {};
+            this.$element.removeData('weekCalendar');
+            log(this, "END DESTROY");
+        },
         init: function() {
             var that = this, element = this.$element;
-            element.append(table(that));
+            element.on("remove", function (){
+                that.destroy();
+            });
+            element.append(table(this));
 
             $(".weekCalendar-slot").tooltip();
 
@@ -45,9 +55,12 @@
 
             return res;
         },
-        'deleteItemGroup': function(id) {
+        'deleteItemGroup': function(id, silent) {
+            var found = false;
             for (var x in this.$itemGroups) {
                 if (this.$itemGroups[x].id === id) {
+                    found = true;
+                    log (this, "delete " + this.$itemGroups[x].elements.length + " elements");
                     for (var y in this.$itemGroups[x].elements) {
                         var e = this.$itemGroups[x].elements[y];
                         if ($(e).data("weekCalendar-itemGroupId") === id) {
@@ -58,24 +71,45 @@
                             e.empty();
                         }
                     }
+                    if (silent === undefined || silent === false) {
+                        this.options.beforeDeleteCallback.call(this, this.$itemGroups[x]);
+                    }
+                    var copy = $.extend({}, this.$itemGroups[x]);
                     this.$itemGroups.splice(x, 1);
+                    if (silent === undefined || silent === false){
+                        this.options.afterDeleteCallback.call(this, copy);
+                    }
                     $('#weekCalendar-deleteBtn' + id).remove();
                     $('#weekCalendar-info' + id).remove();
                 }
             }
-            this.options.deleteCallback.call();
+            
+            if (!found) {
+                log(this, id + " not found");
+            }
         },
-        'clear': function() {
+        'clear': function(silent) {
+            log(this, "clear");
             while (this.$itemGroups.length > 0) {
-                this.deleteItemGroup(this.$itemGroups[0].id);
+                this.deleteItemGroup(this.$itemGroups[0].id, silent);
             }
         },
         'addItemGroup': function(itemGroup) {
             var that = this;
+            
+            if (itemGroup.id === undefined) {
+                itemGroup.id = idGenerator();
+            }
+            log(this, "Add Item Group..." + itemGroup.id);
+            
+            for (var x in that.$itemGroups) {
+                if (that.$itemGroups[x].id === itemGroup.id) {
+                    //already exists
+                    return;
+                }
+            }
+            
             var overlap = false;
-
-            itemGroup.id = idGenerator();
-
             for (var x in itemGroup.elements) {
                 if ($(itemGroup.elements[x]).data("weekCalendar-itemGroupId")) {
                     overlap = true;
@@ -97,10 +131,13 @@
                 }).html(that.options.i18n.deleteLabel);
 
                 deleteBtn.on("click", function() {
+                    log(that, "click delete " + itemGroup.id)
                     that.deleteItemGroup(itemGroup.id);
                     return false;
                 });
-                itemGroup.elements[0].before(deleteBtn);
+                if (itemGroup.elements.length > 0) {
+                    itemGroup.elements[0].before(deleteBtn);
+                }
 
                 var startHour = undefined, endHour = undefined,
                         startMinute = undefined, endMinute = undefined,
@@ -113,72 +150,78 @@
                     $(e).tooltip("disable");
 
                     if (startHour === undefined || startHour >= e.data("weekCalendar-hour")) {
-                        startHour = e.data("weekCalendar-hour")
-                        var m = slot2minutes(that, e.data("weekCalendar-slot"))
+                        startHour = e.data("weekCalendar-hour");
+                        var m = slot2minutes(that, e.data("weekCalendar-slot"));
                         if (startMinute === undefined
                                 || startMinute > m.from) {
-                            startMinute = m.from
+                            startMinute = m.from;
                             if (startMinute === 60) {
-                                startHour = startHour + 1
-                                startMinute = 0
+                                startHour = startHour + 1;
+                                startMinute = 0;
                             }
                         }
                     }
 
                     if (endHour === undefined || endHour <= e.data("weekCalendar-hour")) {
-                        endHour = e.data("weekCalendar-hour")
-                        var m = slot2minutes(that, e.data("weekCalendar-slot"))
+                        endHour = e.data("weekCalendar-hour");
+                        var m = slot2minutes(that, e.data("weekCalendar-slot"));
                         if (endMinute === undefined
                                 || endMinute < m.to) {
-                            endMinute = m.to
+                            endMinute = m.to;
                             if (endMinute === 60) {
-                                endHour = endHour + 1
-                                endMinute = 0
+                                endHour = endHour + 1;
+                                endMinute = 0;
                             }
                         }
                     }
 
-                    if (startWeekDay === undefined || startWeekDay > e.data("weekCalendar-weekDay")) {
-                        startWeekDay = e.data("weekCalendar-weekDay")
+                    if (startWeekDay === undefined || startWeekDay > 
+                            rectifyDayLocal(that, e.data("weekCalendar-weekDay"))) {
+                        startWeekDay = rectifyDayLocal(that, e.data("weekCalendar-weekDay"));
                     }
-                    if (endWeekDay === undefined || startWeekDay < e.data("weekCalendar-weekDay")) {
-                        endWeekDay = e.data("weekCalendar-weekDay")
+                    if (endWeekDay === undefined || endWeekDay < 
+                            rectifyDayLocal(that, e.data("weekCalendar-weekDay"))) {
+                        endWeekDay =rectifyDayLocal(that, e.data("weekCalendar-weekDay"));
                     }
                 });
 
                 itemGroup.displayName = calculateItemGroupDisplayName(that, itemGroup);
-                itemGroup.elements[0].append(
+                if (itemGroup.elements.length > 0) {
+                    itemGroup.elements[0].append(
                         info.html(that.options.i18n.editLabel + " " + itemGroup.displayName));
+                }
 
                 that.$itemGroups.push(itemGroup);
 
-                itemGroup.startHour = startHour
-                itemGroup.endHour = endHour
-                itemGroup.startMinute = startMinute
-                itemGroup.endMinute = endMinute
-                itemGroup.startWeekDay = startWeekDay
-                itemGroup.endWeekDay = endWeekDay
-
-                that.options.stopCallback.call(that, itemGroup);
+                itemGroup.startHour = startHour;
+                itemGroup.endHour = endHour;
+                itemGroup.startMinute = startMinute;
+                itemGroup.endMinute = endMinute;
+                itemGroup.startWeekDay = startWeekDay;
+                itemGroup.endWeekDay = endWeekDay;
+                
+                log(this, "addItemCallback...");
+                that.options.addItemCallback.call(this, itemGroup);
             }
         },
         'addCustomTime': function(customTime) {
             var that = this;
+            log(this, "addCustomTime...");
             var selector = "";
-            for (var x = customTime.fromWeekDay; x <= customTime.toWeekDay; x++) {
+            for (var x = rectifyDayLocal(that, customTime.fromWeekDay); 
+                    x <= rectifyDayLocal(that, customTime.toWeekDay); 
+                    x++) {
                 for (var y = customTime.fromHour; y <= customTime.toHour; y++) {
                     var tmpSel = "";
-
                     if (y !== customTime.fromHour && y !== customTime.toHour) {
-                        tmpSel = "div[data-weekCalendar-weekDay=" + x
+                        tmpSel = "div[data-weekCalendar-weekDay=" + ((x + that.options.startWeekDay) % 7)
                                 + "][data-weekCalendar-hour=" + y + "],";
                     } else {
                         //first or last hour
-
                         if (customTime.fromHour === customTime.toHour) {
                             //first or last hour are the same
                             for (var z = minute2Slot(that, customTime.fromMinute); z < minute2Slot(that, customTime.toMinute); z++) {
-                                var aux = "div[data-weekCalendar-weekDay=" + x
+                                var aux = "div[data-weekCalendar-weekDay=" + ((x + that.options.startWeekDay) % 7)
                                         + "][data-weekCalendar-hour=" + y + "]"
                                         + "[data-weekCalendar-slot=" + z
                                         + "],";
@@ -187,7 +230,7 @@
                         } else {
                             if (y === customTime.fromHour) {
                                 for (var z = minute2Slot(that, customTime.fromMinute); z <= that.options.divisions; z++) {
-                                    var aux = "div[data-weekCalendar-weekDay=" + x
+                                    var aux = "div[data-weekCalendar-weekDay=" + ((x + that.options.startWeekDay) % 7)
                                             + "][data-weekCalendar-hour=" + y + "]"
                                             + "[data-weekCalendar-slot=" + z
                                             + "],";
@@ -196,8 +239,8 @@
                             }
 
                             if (y === customTime.toHour) {
-                                for (var z = 0; z <= minute2Slot(that, customTime.toMinute); z++) {
-                                    var aux = "div[data-weekCalendar-weekDay=" + x
+                                for (var z = 0; z <= minute2Slot(that, customTime.toMinute) -1; z++) {
+                                    var aux = "div[data-weekCalendar-weekDay=" + ((x + that.options.startWeekDay) % 7)
                                             + "][data-weekCalendar-hour=" + y + "]"
                                             + "[data-weekCalendar-slot=" + z
                                             + "],";
@@ -210,11 +253,16 @@
                     selector = selector + tmpSel;
                 }
             }
-            var elements = $(selector.substring(0, selector.length - 1));
+            var elements = that.$element.find(selector.substring(0, selector.length - 1));
             var itemGroup = newItemGroup();
             elements.each(function(index, e) {
                 itemGroup.elements.push($(e));
             });
+            
+            if (customTime.id !== undefined) {
+                itemGroup.id  = customTime.id;
+            }
+            
             that.addItemGroup(itemGroup);
         }
     };
@@ -224,13 +272,16 @@
         return {
             from: s * minutesPerSlot,
             to: (s + 1) * minutesPerSlot
-        }
+        };
     }
 
     function minute2Slot(that, m) {
+        if (m === 0) {
+            return -1;
+        }
         var minutesPerSlot = (60 / (that.options.divisions));
         for (var x = 0; x <= that.options.divisions; x++) {
-            if ((m >= minutesPerSlot * x) && (m <= minutesPerSlot * (x + 1))) {
+            if ((m >= (minutesPerSlot * x)) && (m < minutesPerSlot * (x + 1))) {
                 return x;
             }
         }
@@ -238,11 +289,15 @@
     }
 
     function idGenerator() {
-        return new Date().getMilliseconds();
+        var id = '';
+        for (var x = 0; x<4; x++) {
+            id += String.fromCharCode(65 + Math.floor(Math.random() * 26));
+        }
+        return id + Date.now();
     }
 
     function newItemGroup() {
-        return {id: 'tmp', elements: [], displayName: ''};
+        return {elements: [], displayName: ''};
     }
 
     function rectifyDayLocal(that, d) {
@@ -254,6 +309,9 @@
     }
 
     function calculateItemGroupDisplayName(that, itemGroup) {
+        if (itemGroup.elements.length <= 0) {
+            return "vacio";
+        }
         var minWeekDay, maxWeekDay;
 
         for (var x in itemGroup.elements) {
@@ -339,7 +397,10 @@
         var thead = $("<thead>").append(tr);
         tr.append($("<th>", {'class': 'weekCalendar-hourColumn', style: 'width: 20px'}));
         for (var x in arr) {
-            tr.append($("<th>", {'class': 'weekCalendar-weekColumn'}).html(arr[x]));
+            tr.append($("<th>", {
+                'class': 'weekCalendar-weekColumn',
+                style: "width: " + that.options.style.columnWidth
+            }).html(arr[x]));
         }
 
         return thead;
@@ -352,7 +413,10 @@
             var tr = $("<tr>");
             body.append(tr);
 
-            tr.append($("<td>", {'class': 'weekCalendar-hourColumn'}).html(formatHour(x, 0)));
+            tr.append($("<td>", {
+                'class': 'weekCalendar-hourColumn',
+                style: "width: " + that.options.style.columnWidth
+            }).html(formatHour(x, 0)));
 
             for (var y = 0 + that.options.startWeekDay; y < (7 + that.options.startWeekDay); y++) {
                 var hour = $("<td>");
@@ -389,26 +453,11 @@ padding: 0 0 0 0 !important;\
 height: " + that.options.style.height + "px;\
 line-height: " + that.options.style.height + "px;\
 }\
-.weekCalendar-slot {\
-width: 100%; \
-height: 100%; \
-display: block; \
-border-top: 1px dotted black \
-}\
 div.ui-selecting {\
 background: " + that.options.style.selectingColor + "\
 }\
 .weekCalendar-itemGroup {\
 background-color: " + that.options.style.selectedColor + ";\
-}\
-.weekCalendarTable .weekCalendar-weekColumn {\
-width: " + that.options.style.columnWidth + ";\
-}\
-.weekCalendarTable .weekCalendar-hourColumn,.weekCalendarTable th {\
-text-align: center\
-}\
-.weekCalendarTable .weekCalendar-hourColumn{\
-width: 5px\
 }\
 ").appendTo("head");
         return body;
@@ -426,6 +475,12 @@ width: 5px\
             res = res + m;
         }
         return res;
+    }
+    
+    function log(that, m) {
+        if (that.options.debug) {
+            console.log("weekCalendar: " + m);
+        }
     }
 
     /*
@@ -446,12 +501,16 @@ width: 5px\
 
             if (!data) {
                 $this.data('weekCalendar', (data = new WeekCalendar(this, options)));
-            }
+            }   
 
             if (typeof option === 'string') {
                 var res = data[option](args[1]);
                 results.push(res);
             } else {
+                if (options.debug) {
+                    console.log("fn.weekCalendar");
+                    console.log(options);
+                }
                 data.init();
             }
         });
@@ -460,11 +519,11 @@ width: 5px\
 
     $.fn.weekCalendar.defaults = {
         divisions: 2,
-        stopCallback: function() {
-        },
-        deleteCallback: function() {
-        },
-        startWeekDay: 0
+        addItemCallback: function() {},
+        beforeDeleteCallback: function() {},
+        afterDeleteCallback: function() {},
+        startWeekDay: 0,
+        debug: false
     };
 
     $.fn.weekCalendar.i18nDefaults = {

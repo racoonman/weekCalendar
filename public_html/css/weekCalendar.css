@@ -1,0 +1,14 @@
+.weekCalendar-slot {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-top: 1px dotted black
+}
+
+.weekCalendarTable .weekCalendar-hourColumn,.weekCalendarTable th {
+    text-align: center
+}
+
+.weekCalendarTable .weekCalendar-hourColumn{
+    width: 5px
+}
