@@ -171,6 +171,10 @@
                                 endHour = endHour + 1;
                                 endMinute = 0;
                             }
+                            if (endHour === 24) {
+                                endHour = 23;
+                                endMinute = 59;
+                            }
                         }
                     }
 
@@ -374,6 +378,10 @@
         if (maxHour < 10) {
             maxHourStr = "0" + maxHour;
         }
+        
+        if (maxHour === 24) {
+            maxHourStr = "23";
+        }
 
         minMinuteStr = (60 / that.options.divisions) * minSlot;
         if (minMinuteStr < 10) {
@@ -383,6 +391,9 @@
         maxMinuteStr = ((60 / that.options.divisions) * maxSlot) + minutesPerSlot;
         if (maxMinuteStr < 10) {
             maxMinuteStr = "0" + maxMinuteStr;
+        }
+        if (maxHour === 24) {
+            maxMinuteStr = "59";
         }
 
         var res = dayStr + " " + minHourStr + ":" + minMinuteStr
@@ -415,17 +426,49 @@
         var thead = $("<thead>").append(tr);
         tr.append($("<th>", {'class': 'weekCalendar-hourColumn', style: 'width: 20px'}));
         for (var x in arr) {
+            var dayName = $("<a>", {href: "javascript:void(0)"}).html(arr[x]);
+            dayName.data('weekCalendar-click', true);
+            dayName.bind('click', {x: parseInt(x), arr: arr}, function(event){
+                if ($(this).data('weekCalendar-click')) {
+                    $(this).data('weekCalendar-click', false);
+                    var day = ((event.data.x + that.options.startWeekDay) %7);
+                    for (var y in that.$itemGroups) {
+                        if (that.$itemGroups[y].startWeekDay === event.data.x
+                                && that.$itemGroups[y].endWeekDay === event.data.x) {
+                            that.deleteItemGroup(that.$itemGroups[y].id);
+                        }
+                    }
+
+                    that.addCustomTime({
+                        fromHour: 0,
+                        toHour: 23,
+                        fromMinute: 0,
+                        toMinute: 59,
+                        fromWeekDay: day,
+                        toWeekDay: day
+                    });
+                } else {
+                    $(this).data('weekCalendar-click', true);
+                    for (var y in that.$itemGroups) {
+                        if (that.$itemGroups[y].startWeekDay === event.data.x
+                                && that.$itemGroups[y].endWeekDay === event.data.x) {
+                            that.deleteItemGroup(that.$itemGroups[y].id);
+                        }
+                    }
+                }
+            });
+            
             tr.append($("<th>", {
                 'class': 'weekCalendar-weekColumn',
                 style: "width: " + that.options.style.columnWidth
-            }).html(arr[x]));
+            }).append(dayName)
+            );
         }
 
         return thead;
     }
 
     function tbody(that) {
-        console.log(that.options.divisions)
         var body = $("<tbody>");
 
         for (var x = 0; x < 24; x++) {
