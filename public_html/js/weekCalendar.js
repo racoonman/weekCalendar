@@ -104,8 +104,7 @@
             
             for (var x in that.$itemGroups) {
                 if (that.$itemGroups[x].id === itemGroup.id) {
-                    //already exists
-                    return;
+                    return; //already exists
                 }
             }
             
@@ -131,7 +130,7 @@
                 }).html(that.options.i18n.deleteLabel);
 
                 deleteBtn.on("click", function() {
-                    log(that, "click delete " + itemGroup.id)
+                    log(that, "click delete " + itemGroup.id);
                     that.deleteItemGroup(itemGroup.id);
                     return false;
                 });
@@ -207,6 +206,9 @@
         'addCustomTime': function(customTime) {
             var that = this;
             log(this, "addCustomTime...");
+            if (!validateCustomTime(customTime)){
+                return ;
+            }
             var selector = "";
             for (var x = rectifyDayLocal(that, customTime.fromWeekDay); 
                     x <= rectifyDayLocal(that, customTime.toWeekDay); 
@@ -239,7 +241,11 @@
                             }
 
                             if (y === customTime.toHour) {
-                                for (var z = 0; z <= minute2Slot(that, customTime.toMinute) -1; z++) {
+                                var toSlot = minute2Slot(that, customTime.toMinute) -1;
+                                if (customTime.toHour === 23 && customTime.toMinute === 59) {
+                                    toSlot = minute2Slot(that, customTime.toMinute);
+                                }
+                                for (var z = 0; z <= toSlot; z++) {
                                     var aux = "div[data-weekCalendar-weekDay=" + ((x + that.options.startWeekDay) % 7)
                                             + "][data-weekCalendar-hour=" + y + "]"
                                             + "[data-weekCalendar-slot=" + z
@@ -266,6 +272,18 @@
             that.addItemGroup(itemGroup);
         }
     };
+
+    function validateCustomTime(customTime){
+        if (customTime.fromHour > 23 || customTime < 0
+                    || customTime.toHour > 23 || customTime.toHour < 0
+                    || customTime.fromMinute > 59 || customTime.fromMinute < 0
+                    || customTime.toMinute > 59 || customTime.toMinute < 0
+                    || customTime.fromWeekDay > 6 || customTime.toWeekDay < 0
+                ) {
+            return false;
+        } 
+        return true;
+    }
 
     function slot2minutes(that, s) {
         var minutesPerSlot = (60 / (that.options.divisions));
@@ -407,6 +425,7 @@
     }
 
     function tbody(that) {
+        console.log(that.options.divisions)
         var body = $("<tbody>");
 
         for (var x = 0; x < 24; x++) {
