@@ -488,7 +488,7 @@
                     var hourSlot = $("<div>", {
                         'class': 'weekCalendar-slot weekCalendar-' + y.toString() + x.toString() + z.toString(),
                         style: 'height: ' + (that.options.style.height / that.options.divisions) + 'px;',
-                        title: formatHour(x, ((60 / that.options.divisions) * z)),
+                        title: formatHour(x, ((60 / that.options.divisions) * z)) + "-" + formatHour(x, ((60 / that.options.divisions) * (z+1))),
                         'data-weekCalendar-hour': x,
                         'data-weekCalendar-weekDay': y % 7,
                         'data-weekCalendar-slot': z
@@ -533,6 +533,14 @@ background-color: " + that.options.style.selectedColor + ";\
         res = res + ":";
         if (m < 10) {
             res = res + "0" + m;
+        } else if(m === 60){
+            h = h+1;
+            if (h < 10) {
+                res = "0" + h + ":";
+            } else {
+                res = h + ":";
+            }
+            res = res + "00";
         } else {
             res = res + m;
         }
